@@ -44,6 +44,10 @@ mod tests {
         let f = Focus::new().focus("a").focus("b").focus("c");
         
         let ancestors = f.ancestors().collect::<Vec<&Arc<Focus>>>();
+        let ancestors = &ancestors[0..ancestors.len()-1];
+        println!("{:?}", ancestors);
+
+        
 
         assert_eq!(ancestors[0].get_access_key(), AccessKey::from("c"));
         assert_eq!(ancestors[1].get_access_key(), AccessKey::from("b"));

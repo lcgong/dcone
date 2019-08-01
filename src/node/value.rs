@@ -1,9 +1,7 @@
 use std::sync::Arc;
-use im::Vector;
-use im::HashMap;
 
-
-
+use super::list::ListValue;
+use super::map::MapValue;
 
 #[derive(Clone)]
 pub enum NodeValue {
@@ -19,14 +17,6 @@ pub enum NodeValue {
 pub type NodeValueRef = Arc<NodeValue>;
 
 
-pub struct ListValue {
-    pub(crate) list: Vector<NodeValueRef>,
-}
-
-#[derive(PartialEq)]
-pub struct MapValue {
-    pub(crate) map: HashMap<String, NodeValueRef>,
-}
 
 
 impl std::fmt::Debug for NodeValue {

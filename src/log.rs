@@ -1,24 +1,24 @@
 use std::sync::Arc;
 use std::cell::RefCell;
 
-use crate::focus::AccessKey;
+use crate::focus::{AccessKey, Focus, FocusLocator};
 
-use crate::cell::node::{NodeValueRef};
+use crate::node::NodeValue;
 
 #[derive(PartialEq, Debug)]
 pub enum ValueChangeEvent {
     Created {
         access_key: AccessKey,
-        new_value: NodeValueRef
+        new_value: Arc<NodeValue>
     },
     Changed {
         access_key: AccessKey,
-        new_value: NodeValueRef,
-        original: NodeValueRef
+        new_value: Arc<NodeValue>,
+        original: Arc<NodeValue>
     },
     Removed {
         access_key: AccessKey,
-        original: NodeValueRef
+        original: Arc<NodeValue>
     }
 }
 
@@ -42,14 +42,33 @@ impl ChangeLogger {
         self.log.borrow_mut().push(event);
     }
 
-    pub fn log_value_created(&self, access_key: AccessKey, new_value: NodeValueRef) {
+    pub fn log_value_created(&self, access_key: AccessKey, new_value: Arc<NodeValue>) {
         self.push(ValueChangeEvent::Created {
             access_key: access_key,
             new_value: new_value
         });
     }
 
-    pub fn log_value_changed(&self, access_key: AccessKey, new_value: NodeValueRef, original: NodeValueRef) {
+    pub fn value_created(&self, root: &Arc<NodeValue>, focus: &Arc<Focus>, new_value: &Arc<NodeValue>) {
+        let access_key = focus.get_access_key();
+        self.push(ValueChangeEvent::Created {
+            access_key: access_key,
+            new_value: new_value.clone()
+        });
+    }
+
+    pub fn value_changed(&self, root: &Arc<NodeValue>, focus: &Arc<Focus>, 
+        new_value: &Arc<NodeValue>, original: &Arc<NodeValue>) {
+        
+        let access_key = focus.get_access_key();
+        self.push(ValueChangeEvent::Changed {
+            access_key: access_key,
+            new_value: new_value.clone(),
+            original: original.clone()
+        });
+    }
+
+    pub fn log_value_changed(&self, access_key: AccessKey, new_value: Arc<NodeValue>, original: Arc<NodeValue>) {
         
         self.push(ValueChangeEvent::Changed {
             access_key: access_key,
@@ -58,7 +77,7 @@ impl ChangeLogger {
         });
     }
 
-    pub fn log_value_removed(&self, access_key: AccessKey, original: NodeValueRef) {
+    pub fn log_value_removed(&self, access_key: AccessKey, original: Arc<NodeValue>) {
         self.push(ValueChangeEvent::Removed {
             access_key: access_key,
             original: original

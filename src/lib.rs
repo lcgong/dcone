@@ -1,3 +1,5 @@
+
+mod node;
 pub mod focus;
 mod cell;
 mod domain;
@@ -5,4 +7,6 @@ mod domain;
 mod log;
 
 pub use domain::Domain;
-pub use cell::builder::{ValueBuilder, CellBuilder, DomainRootSetter};
+pub use domain::DomainUtil;
+// pub use cell::builder::{ValueBuilder, CellBuilder};
+
