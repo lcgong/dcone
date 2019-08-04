@@ -35,7 +35,6 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;            
         
-        let root_node =  &domain.get_root();
         let logger = &domain.logger;
 
         match parent_node.as_ref() {
@@ -45,7 +44,7 @@ impl ValueCell {
 
                 let new_parent_node = Arc::new(NodeValue::List(list_value));
 
-                logger.value_created(root_node, &item_focus, &new_item_node);
+                logger.node_created(&item_focus, parent_node, &new_item_node);
 
                 upward_update_nodes(domain, parent_focus, new_parent_node.clone());
                 
@@ -71,7 +70,6 @@ impl ValueCell {
         let parent_node = &self.node;            
         
         let access_key = access_key.into();
-        let root_node =  &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -84,7 +82,7 @@ impl ValueCell {
                         list_value.insert(index, new_item_node.clone())
                     ));
 
-                logger.value_created(root_node, &item_focus, &new_item_node);
+                logger.node_created(&item_focus, parent_node, &new_item_node);
 
                 upward_update_nodes(domain, parent_focus, new_parent_node.clone());
                 

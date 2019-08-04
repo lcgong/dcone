@@ -70,7 +70,7 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;
 
-        let root_node = &domain.get_root();
+        // let root_node = &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -80,7 +80,7 @@ impl ValueCell {
                     map_value.set_item(key.to_string(), new_item_node.clone()),
                 ));
 
-                logger.value_created(root_node, &item_focus, &new_item_node);
+                logger.node_created(&item_focus, parent_node, &new_item_node);
 
                 upward_update_nodes(domain, parent_focus, new_parent_node.clone());
                 Ok(ValueCell {
@@ -94,7 +94,7 @@ impl ValueCell {
                     list_value.set_item(index, new_item_node.clone()),
                 ));
 
-                logger.value_created(root_node, &item_focus, &new_item_node);
+                logger.node_created(&item_focus, parent_node, &new_item_node);
 
                 upward_update_nodes(domain, parent_focus, new_parent_node.clone());
                 Ok(ValueCell {
@@ -120,7 +120,7 @@ impl ValueCell {
         let parent_node = &self.node;
 
         let access_key = access_key.into();
-        let root_node = &domain.get_root();
+        // let root_node = &domain.get_root();
         let logger = &domain.logger;
 
         let item_focus = parent_focus.focus(access_key.clone());
@@ -133,7 +133,7 @@ impl ValueCell {
                         map_value.remove(key)
                     ));
 
-                    logger.value_removed(root_node, &item_focus, original);
+                    logger.node_removed(&item_focus, parent_node, original);
 
                     upward_update_nodes(domain, parent_focus, new_parent_node.clone());
 
@@ -154,7 +154,7 @@ impl ValueCell {
                         list_value.remove(*index)
                     ));
 
-                    logger.value_removed(root_node, &item_focus, original);
+                    logger.node_removed(&item_focus, parent_node, original);
 
                     upward_update_nodes(domain, parent_focus, new_parent_node.clone());
 

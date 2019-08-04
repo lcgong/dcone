@@ -8,7 +8,6 @@ mod error;
 
 mod log;
 
-
 pub use error::Error;
 pub use domain::Domain;
 pub use domain::DomainUtil;

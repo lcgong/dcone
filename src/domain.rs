@@ -5,7 +5,6 @@ use crate::focus::{AccessKey, Focus};
 
 use crate::cell::ValueCell;
 use crate::node::NodeValue;
-// use crate::cell::cell::ValueCell;
 use crate::error::Error;
 
 #[derive(PartialEq)]
@@ -41,12 +40,7 @@ impl DomainUtil {
     pub fn navigate(&self, path: &str) -> Result<ValueCell, Error> {
         self.root().navigate(path)
     }
-
-
 }
-
-
-
 
 
 impl Domain {
@@ -76,10 +70,11 @@ impl Domain {
     pub(crate) fn set_root(&self, value: Arc<NodeValue>) {
 
         let root_focus = self.root_focus.clone();
-        // let old_root = domain.root_node.replace(value);
         let mut root_node = self.root_node.borrow_mut();
-        
-        self.logger.value_changed(&root_node, &root_focus, &value, &root_node);
+
+        let none_node = Arc::new(NodeValue::None);
+
+        self.logger.node_changed(&root_focus, &none_node, &value, &root_node);
 
         *root_node = value;
     } 

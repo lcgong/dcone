@@ -10,7 +10,6 @@ pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
 
     let logger = &domain.logger;
 
-    
     let orig_root = &domain.get_root();
     
     let mut new_node = new_node;
@@ -24,7 +23,7 @@ pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
                             map_value.set_item(key.to_string(), new_node.clone())
                         ));
 
-                    logger.value_changed(orig_root, focus, &new_node, children_node);
+                    logger.node_changed(focus, parent_node, &new_node, children_node);
 
                     new_node = node;
                 },
@@ -34,7 +33,7 @@ pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
                             list.set_item(index, new_node.clone())
                         ));
 
-                    logger.value_changed(orig_root, focus, &new_node, children_node);
+                    logger.node_changed(focus, parent_node, &new_node, children_node);
 
                     new_node = node;
                 },
