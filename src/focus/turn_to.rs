@@ -52,9 +52,7 @@ impl FocusTurnTo for Arc<Focus> {
                         }));
                     }
                 }
-            } else if let Some(matched) = caps.get(1) { // parent symbol (..)
-                println!("xxx: {:?}", matched.as_str());
-
+            } else if let Some(_) = caps.get(1) { // parent symbol (..)
                 new_focus = match new_focus.parent_focus {
                     Some(ref parent) => parent.clone(),
                     None => {

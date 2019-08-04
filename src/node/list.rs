@@ -50,7 +50,7 @@ impl ListValue {
     #[inline]
     pub fn push(&self, value: Arc<NodeValue>) -> Self {
 
-       let mut new_vector = self.list.clone();
+        let mut new_vector = self.list.clone();
         new_vector.push_back(value);
 
         ListValue {
@@ -74,39 +74,25 @@ impl ListValue {
             list: new_vector
         }
     }
+
+    pub fn remove(&self, index: CircularZeroIndex) -> Self {
+
+        let index = if index >= 0 {
+            index
+        } else { // negative index, -1 means the last one
+            self.list.len() as isize + index    
+        } as usize;                        
+
+        let mut new_vector = self.list.clone();
+        new_vector.remove(index);
+
+        ListValue {
+            list: new_vector
+        }
+    }    
 }
 
 // impl ListCell {
-//     pub fn as_value(&self) -> ValueCell {
-//         ValueCell {
-//             domain: self.domain.clone(),
-//             focus: Focus::new(),
-//             node: self.node.clone(),
-//         }
-//     }
-
-//     pub fn len(&self) -> usize {
-//         if let NodeValue::List(list_value) = self.node.as_ref() {
-//             return list_value.list.len();
-//         }
-
-//         panic!("This node should be a NodeValue::List");
-//     }
-
-//     pub fn get_item(&self, index: usize) -> Option<ValueCell> {
-//         if let NodeValue::List(list_value) = self.node.as_ref() {
-//                 return match list_value.list.get(index) {
-//                     Some(item) => Some(ValueCell {
-//                         domain: self.domain.clone(),
-//                         focus: Focus::new(),
-//                         node: item.clone()
-//                     }), 
-//                     _ => None
-//                 }
-//         }
-
-//         panic!("This node should be a NodeValue::List");
-//     }
 
     // pub fn set_value(&self, index: usize, item: ValueCell) -> Self {
     //     if let NodeValue::List(old_list) = self.node.as_ref() {
@@ -210,10 +196,7 @@ impl ListValue {
 
 
 
-//     pub fn remove(&mut self, index: usize) -> Arc<NodeValue> {
-//         let old_item = self.list.remove(index);
-//         old_item.clone()
-//     }
+
 
 //     pub fn pop_head(&mut self) -> Option<Arc<NodeValue>> {
 //         if let Some(node_ref) = self.list.pop_front() {
@@ -229,12 +212,6 @@ impl ListValue {
 //         } else {
 //             None
 //         }
-//     }
-// }
-
-// impl ::std::fmt::Debug for ListCell {
-//     fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-//         self.node.fmt(fmt)
 //     }
 // }
 
@@ -297,54 +274,3 @@ impl ::std::fmt::Debug for ListValue {
         fmt.write_str("]")
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn list_value() {
-//         use crate::list::{ListValue, NodeValue};
-//         use std::sync::Arc;
-//         let mut list1 = ListValue::new();
-//         list1.push(Arc::new(NodeValue::from(10)));
-//         list1.push(Arc::new(NodeValue::from("AA")));
-//         list1.push(Arc::new(NodeValue::from(20)));
-
-//         assert_eq!(list1.get_item(1).unwrap().as_ref(), &NodeValue::from("AA"));
-//         assert_eq!(list1.get_item(2).unwrap().as_ref(), &NodeValue::from(20));
-
-//         list1.push_head(Arc::new(NodeValue::from(100)));
-//         assert_eq!(list1.len(), 4);
-//         assert_eq!(list1.pop_head().unwrap().as_ref(), &NodeValue::from(100));
-//         assert_eq!(list1.len(), 3);
-
-//         list1.push(Arc::new(NodeValue::from(100)));
-//         list1.push(Arc::new(NodeValue::from(200)));
-//         assert_eq!(list1.pop().unwrap().as_ref(), &NodeValue::from(200));
-//         assert_eq!(
-//             list1.remove(list1.len() - 1).as_ref(),
-//             &NodeValue::from(100)
-//         );
-//         assert_eq!(list1.len(), 3);
-
-//         assert_eq!(list1.get_item(0).unwrap().as_ref(), &NodeValue::from(10));
-
-//         let mut list2 = list1.clone();
-//         let old_item = list2.set_value(1, Arc::new(NodeValue::from("BB")));
-
-//         assert_eq!(list1.get_item(1).unwrap().as_ref(), &NodeValue::from("AA"));
-//         assert_eq!(list2.get_item(1).unwrap().as_ref(), &NodeValue::from("BB"));
-
-//         assert_eq!(list1.get_item(1), Some(old_item));
-//         assert_ne!(list1.get_item(1), list2.get_item(1));
-
-//         println!("List1: {:?}", list1);
-//         println!("List2: {:?}", list2);
-
-//         // for item in &list1 {
-//         //     println!("e1 {:?}", item);
-//         // }
-//         // for item in &list2 {
-//         //     println!("e2 {:?}", item);
-//         // }
-//     }
-// }

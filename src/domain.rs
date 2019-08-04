@@ -120,7 +120,7 @@ fn get_item_node<>(parent_focus: &Arc<Focus>, parent_node: &Arc<NodeValue>,
             }
         },
         _ => {
-            Error::wrong_item_access(parent_focus, access_key)
+            Error::mismatched_access_key(parent_focus, access_key)
         }
     }
 }

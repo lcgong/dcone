@@ -68,6 +68,16 @@ impl ChangeLogger {
         });
     }
 
+    pub fn value_removed(&self, root: &Arc<NodeValue>, focus: &Arc<Focus>,  original: &Arc<NodeValue>) {
+
+        let access_key = focus.get_access_key();
+        self.push(ValueChangeEvent::Removed {
+            access_key: access_key,
+            original: original.clone()
+        });
+    }    
+
+
     pub fn log_value_changed(&self, access_key: AccessKey, new_value: Arc<NodeValue>, original: Arc<NodeValue>) {
         
         self.push(ValueChangeEvent::Changed {
