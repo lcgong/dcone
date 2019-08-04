@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use super::list::ListValue;
 use super::map::MapValue;
 
@@ -13,10 +11,6 @@ pub enum NodeValue {
     List(ListValue),
     Map(MapValue),
 }
-
-pub type NodeValueRef = Arc<NodeValue>;
-
-
 
 
 impl std::fmt::Debug for NodeValue {

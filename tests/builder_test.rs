@@ -61,9 +61,10 @@ use mstruct::DomainUtil;
     
 // }
 
+use mstruct::Error;
 
 #[test]
-fn domain_gen() {
+fn domain_gen() -> Result<(), Error> {
 
     let domain = DomainUtil::new();
 
@@ -81,15 +82,26 @@ fn domain_gen() {
 
 
     let domain = DomainUtil::new();
-    let list = domain
+    
+    domain
         .root()
         .empty_list()
         .push_item(10)
         .push_map_item()
         .push_list_item()
-        .focus(1)
-        .set_item("a", "100")
+        .focus(1)?
+        .set_item("a", 100)
+        .navigate("..#2")?
+        .push_item(101)
         ;
+    
     println!("xxx {:?}", domain.root());
 
+
+    // println!("yyy {:?}", domain.navigate("#1/a"));
+
+    assert_eq!(domain.navigate("#1/a")?.to_i64(), 100);
+
+
+    Ok(())
 }

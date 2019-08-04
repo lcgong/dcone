@@ -1,18 +1,17 @@
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PathParsingError {
     pub(super) path: String,
     pub(super) err: std::num::ParseIntError
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OverFocusError {
     pub(super) path: String,
 }
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AccessPathError {
     OverFocus(OverFocusError),
     Parsing(PathParsingError)

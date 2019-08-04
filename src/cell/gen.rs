@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::domain::{Domain, set_domain_root, get_domain_root};
+use crate::domain::Domain;
 use crate::focus::{AccessKey, Focus, FocusLocator};
 use crate::node::{NodeValue, MapValue, ListValue};
 // use crate::log::ChangeLogger;
@@ -15,7 +15,7 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;
         
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let logger = &domain.logger;
 
         match parent_node.as_ref() {
@@ -46,7 +46,7 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;
         
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let logger = &domain.logger;
 
         match parent_node.as_ref() {
@@ -83,7 +83,7 @@ impl ValueCell {
         let parent_node = &self.node;
         
         let access_key = access_key.into();
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -122,7 +122,7 @@ impl ValueCell {
         let parent_node = &self.node;
         
         let access_key = access_key.into();
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -162,7 +162,7 @@ impl ValueCell {
         let parent_node = &self.node;            
         
         let access_key = access_key.into();
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -237,7 +237,7 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;            
         
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let logger = &domain.logger;
 
         match parent_node.as_ref() {
@@ -273,7 +273,7 @@ impl ValueCell {
         let parent_node = &self.node;            
         
         let access_key = access_key.into();
-        let root_node =  &get_domain_root(domain);
+        let root_node =  &domain.get_root();
         let item_focus = parent_focus.focus(access_key.clone());
         let logger = &domain.logger;
 
@@ -302,51 +302,6 @@ impl ValueCell {
         }
     }
 }
-
-impl ValueCell {
-    pub fn focus<K: Into<AccessKey>>(&self, access_key: K) -> ValueCell {
-        
-        let access_key = access_key.into();
-        let item_focus = self.focus.focus(access_key.clone());
-
-        let access_key = access_key.into();
-        match (self.node.as_ref(), access_key) {
-            (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
-                match map_value.get_item(key) {
-                    Some(item_node) => {
-                        ValueCell {
-                            domain: self.domain.clone(),
-                            focus: item_focus,
-                            node: item_node.clone(),
-                        }                
-                    },
-                    None => {
-                        panic!("");
-                    }
-                }
-            },
-            (NodeValue::List(list_value), AccessKey::Index(index)) => {
-                match list_value.get_item(index) {
-                    Some(item_node) => {
-                        ValueCell {
-                            domain: self.domain.clone(),
-                            focus: item_focus,
-                            node: item_node.clone(),
-                        }                
-                    },
-                    None => {
-                        panic!("");
-                    }
-                }
-            },
-            _ => {
-                panic!("");
-            }
-        }
-
-    }
-}
-
 
 
 // /// 返回(需要更新的容器节点, 保留或新建的项目节点)
@@ -450,7 +405,7 @@ fn update_upward_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
     let logger = &domain.logger;
 
     
-    let orig_root = &get_domain_root(domain);
+    let orig_root = &domain.get_root();
     
     let mut new_node = new_node;
     traverse_upward_nodes(orig_root, &focus, 
@@ -482,8 +437,9 @@ fn update_upward_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
                 }
             }
     });
-    
-    set_domain_root(&domain, new_node);
+
+
+    domain.set_root(new_node);
 }
 
 pub fn traverse_upward_nodes<F>(root: &Arc<NodeValue>, focus: &Arc<Focus>, mut func: F)

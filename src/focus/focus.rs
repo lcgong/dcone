@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use super::access_key::AccessKey;
 
 pub struct Focus {
-    pub(super) parent_focus: Option<Arc<Focus>>,
-    pub(super) access_key: AccessKey,
+    pub(crate) parent_focus: Option<Arc<Focus>>,
+    pub(crate) access_key: AccessKey,
     pub(super) directions: RwLock<HashMap<AccessKey, Weak<Focus>>>,
 }
 
