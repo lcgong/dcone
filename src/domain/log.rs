@@ -7,21 +7,42 @@ use std::collections::HashMap;
 
 #[derive(PartialEq)]
 pub enum NodeEvent {
-    Created {
+    RootUpdated {
         txid: u64,
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
-    Updated {
+    ValueCreated {
         txid: u64,
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
-    Deleted {
+    ValueUpdated {
         txid: u64,
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
+    ValueDeleted {
+        txid: u64,
+        focus: Arc<Focus>,
+        value: Arc<NodeValue>,
+    },
+    ListItemInserted {
+        txid: u64,
+        focus: Arc<Focus>,
+        value: Arc<NodeValue>,
+    },
+    ListItemDeleted {
+        txid: u64,
+        focus: Arc<Focus>,
+        value: Arc<NodeValue>,
+    },
+    InternalNodeUpdated {
+        txid: u64,
+        focus: Arc<Focus>,
+        value: Arc<NodeValue>,
+    },
+
 }
 
 pub struct FocusTx {
@@ -37,7 +58,7 @@ pub struct UpdatePending {
 
 pub struct ChangeLogger {
     pub pending: RwLock<HashMap<Arc<Focus>, Vec<UpdatePending>>>,
-    pub changed: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // old to new
+    pub changed: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // new to old
     pub parents: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // child to parent
     pub focus_tx: HashMap<Arc<Focus>, RwLock<FocusTx>>,
     pub txid_max: RwLock<u64>,
@@ -56,78 +77,17 @@ impl ChangeLogger {
         }
     }
 
-    fn new_txid(&self) -> u64 {
+    pub fn new_txid(&self) -> u64 {
         let mut txid_max = self.txid_max.write().unwrap();
         *txid_max += 1;
         *txid_max
     }
 
-    fn push(&self, event: NodeEvent) {
+    pub fn push(&self, event: NodeEvent) {
         let mut log = self.log.write().unwrap();
         log.push(event);
     }
 
-    // pub fn pending_update(
-    //     &self,
-    //     focus: &Arc<Focus>,
-    //     new_value: &Arc<NodeValue>,
-    //     old_value: &Arc<NodeValue>,
-    // ) {
-    //     match self.pending.get(focus)
-    // }
-
-    pub fn node_created(
-        &self,
-        focus: &Arc<Focus>,
-        parent: &Arc<NodeValue>,
-        value: &Arc<NodeValue>,
-    ) {
-        let txid = self.new_txid();
-        self.push(NodeEvent::Created {
-            txid: txid,
-            focus: focus.clone(),
-            value: value.clone(),
-        });
-
-        let mut parents = self.parents.write().unwrap();
-        parents.insert(value.clone(), parent.clone());
-    }
-
-    pub fn node_updated(
-        &self,
-        focus: &Arc<Focus>,
-        parent: &Arc<NodeValue>,
-        value: &Arc<NodeValue>,
-        from: &Arc<NodeValue>,
-    ) {
-        let txid = self.new_txid();
-        self.push(NodeEvent::Updated {
-            txid: txid,
-            focus: focus.clone(),
-            value: value.clone(),
-        });
-
-        let mut parents = self.parents.write().unwrap();
-        parents.insert(value.clone(), parent.clone());
-
-        let mut changed = self.changed.write().unwrap();
-        changed.insert(from.clone(), value.clone());
-    }
-
-    pub fn node_deleted(
-        &self,
-        focus: &Arc<Focus>,
-        parent: &Arc<NodeValue>,
-        value: &Arc<NodeValue>,
-    ) {
-        let txid = self.new_txid();
-
-        self.push(NodeEvent::Deleted {
-            txid: txid,
-            focus: focus.clone(),
-            value: value.clone(),
-        });
-    }
 
     pub fn foreach<F>(&self, mut func: F)
     where
@@ -146,11 +106,17 @@ impl ChangeLogger {
         //     println!("{:p} => {:p}", k.as_ref(), v.as_ref());
         // }
 
+        use NodeEvent::*;
+
         for event in self.log.read().unwrap().iter().rev() {
             let (changed_type, txid, focus, value) = match event {
-                NodeEvent::Created { txid, focus, value } => ("C", txid, focus, value),
-                NodeEvent::Updated { txid, focus, value } => ("U", txid, focus, value),
-                NodeEvent::Deleted { txid, focus, value } => ("D", txid, focus, value),
+                ValueCreated { txid, focus, value } => ("VC", txid, focus, value),
+                ValueUpdated { txid, focus, value } => ("VU", txid, focus, value),
+                ValueDeleted { txid, focus, value } => ("VD", txid, focus, value),
+                ListItemInserted { txid, focus, value } => ("LI", txid, focus, value),
+                ListItemDeleted { txid, focus, value } => ("LD", txid, focus, value),
+                RootUpdated { txid, focus, value } => ("RU", txid, focus, value),
+                InternalNodeUpdated { txid, focus, value } => ("IU", txid, focus, value),
             };
 
             print!("[{}]#{:^2} ", changed_type, txid);
@@ -158,10 +124,14 @@ impl ChangeLogger {
 
             if let Some(parent_node) = parents.get(value) {
                 print!(" _^{:p}", parent_node.as_ref());
+            } else {
+                print!(" {:16}", " ");
             }
 
             if let Some(changed_to) = changed.get(value) {
                 print!(" => {:p}", changed_to.as_ref());
+            } else {
+                print!("  {:16}", " ");
             }
 
             println!(" '{}'", focus.access_path());

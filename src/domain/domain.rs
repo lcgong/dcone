@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::cell::RefCell;
-use crate::focus::{AccessKey, Focus};
+use crate::focus::{AccessKey, Focus, FocusLocator};
 use crate::node::NodeValue;
 use crate::error::Error;
 
@@ -23,16 +23,19 @@ impl Domain {
     }
 
     /// 取得focus对应的NodeValue，从root开始层层查找
-    pub(crate) fn get_focus_node<'a>(&self, focus: &'a Arc<Focus>) 
-        -> Result<Arc<NodeValue>, Error> {
+    pub(crate) fn get_focus_node<'a>(
+        &self, 
+        focus: &'a Arc<Focus>
+    ) -> Result<(Option<Arc<NodeValue>>, Arc<NodeValue>), Error> {
 
         // TODO 使用cache机制以便加速访问
         if let Some(ref parent_focus) = focus.parent_focus {
-            let parent_node = self.get_focus_node(parent_focus)?;
-            get_item_node(&parent_focus, &parent_node, &focus.access_key)
+            let (_, parent_node) = self.get_focus_node(parent_focus)?;
+            let item_node = get_item_node(&parent_focus, &parent_node, &focus.get_access_key())?;
+            Ok((Some(parent_node), item_node))
         } else {
             let root_node = self.root_node.borrow().clone();
-            Ok(root_node)
+            Ok((None, root_node))
         }
     }
 
@@ -44,7 +47,7 @@ impl Domain {
 
         let none_node = Arc::new(NodeValue::None);
 
-        self.logger.node_updated(&root_focus, &none_node, &value, &root_node);
+        self.log_root_updated(root_focus, root_node.clone(), value.clone());
 
         *root_node = value;
     } 

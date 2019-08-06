@@ -6,7 +6,7 @@ use crate::focus::Focus;
 
 pub struct ValueCell {
     pub(crate) domain: Arc<Domain>,
-    // pub(crate) parent: Arc<NodeValue>,
+    pub(crate) parent: Option<Arc<NodeValue>>,
     pub(crate) node: Arc<NodeValue>,
     pub(crate) focus: Arc<Focus>
 }

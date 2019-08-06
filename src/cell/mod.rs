@@ -5,6 +5,5 @@ mod gen;
 mod navigate;
 mod list;
 
-pub mod upward_update;
 pub use cell::ValueCell;
 

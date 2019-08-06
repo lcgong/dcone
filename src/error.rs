@@ -22,6 +22,9 @@ pub enum Error {
     CollectionRequired {
         focus: Arc<Focus>,
     },
+    ListRequired {
+        focus: Arc<Focus>,
+    },
     AccessPathError(AccessPathError),
 
 
@@ -44,6 +47,10 @@ impl Error {
 
     pub fn should_be_collection<T>(parent_focus: &Arc<Focus>) -> Result<T, Error> {
         Err(Error::CollectionRequired {focus: parent_focus.clone()})
+    }
+
+    pub fn should_be_list<T>(parent_focus: &Arc<Focus>) -> Result<T, Error> {
+        Err(Error::ListRequired {focus: parent_focus.clone()})
     }
 }
 
@@ -80,6 +87,10 @@ impl std::fmt::Display for Error {
                 write!(f, "The node should be a Map or List: {}", 
                                 focus.access_path())
             },
+            ListRequired {focus} => {
+                write!(f, "The node should be a Map or List: {}", 
+                                focus.access_path())
+            },
             AccessPathError(err) => {
                 write!(f, "{}", err)
             }
@@ -105,6 +116,7 @@ impl std::error::Error for Error {
             FailedToNavigate { .. } => "Failed to navigate the focus from other",
             WrongItemAccess {..} => "wrong item access",
             CollectionRequired {..} => "The node should be a Map or List",
+            ListRequired {..} => "The node should be a List",
             AccessPathError(_) => "access path error",
 
             // UnexpectedEndOfJson        => "Unexpected end of JSON",

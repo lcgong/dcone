@@ -32,7 +32,7 @@ impl ListValue {
     }
 
     #[inline]
-    pub fn set_item(&self, index: CircularZeroIndex, value: Arc<NodeValue>) -> Self {
+    pub fn set_item(&self, index: CircularZeroIndex, value: Arc<NodeValue>) -> (Self, Option<Arc<NodeValue>>) {
         let index = if index >= 0 {
             index
         } else { // negative index, -1 means the last one
@@ -40,11 +40,11 @@ impl ListValue {
         } as usize;                        
 
         let mut new_vector = self.list.clone();
-        new_vector.set(index, value);
+        let old_item = new_vector.set(index, value);
 
-        ListValue {
+        (ListValue {
             list: new_vector
-        }
+        }, Some(old_item))
     }
 
     #[inline]

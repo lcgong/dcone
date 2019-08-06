@@ -25,7 +25,8 @@ impl DomainUtil {
         ValueCell {
             domain: self.0.clone(),
             focus: self.0.root_focus.clone(),
-            node: root_node
+            node: root_node,
+            parent: None,
         }
     }
 

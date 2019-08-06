@@ -18,14 +18,14 @@ impl MapValue {
         }
     }
 
-    pub fn set_item(&self, key: String, value: Arc<NodeValue>) -> Self {
+    pub fn set_item(&self, key: String, value: Arc<NodeValue>) -> (Self, Option<Arc<NodeValue>>) {
 
         let mut new_hash_map = self.map.clone();
-        new_hash_map.insert(key, value);
+        let old_item = new_hash_map.insert(key, value);
 
-        MapValue {
+        (MapValue {
             map: new_hash_map
-        }
+        }, old_item)
     }
 
     #[inline]

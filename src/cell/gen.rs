@@ -5,7 +5,8 @@ use crate::error::Error;
 use crate::focus::{AccessKey, FocusLocator};
 use crate::node::{ListValue, MapValue, NodeValue};
 
-use super::upward_update::upward_update_nodes;
+use crate::domain::Domain;
+use crate::focus::Focus;
 
 impl ValueCell {
     pub fn set_empty_map(self) -> Result<ValueCell, Error> {
@@ -24,14 +25,40 @@ impl ValueCell {
         self.set_value_node(new_value_node)
     }
 
-    fn set_value_node(self, new_value_node: Arc<NodeValue>) -> Result<ValueCell, Error> {
-        upward_update_nodes(&self.domain, &self.focus, new_value_node.clone());
+    fn set_value_node(self, new_value: Arc<NodeValue>) -> Result<ValueCell, Error> {
 
-        Ok(ValueCell {
-            domain: self.domain,
-            focus: self.focus,
-            node: new_value_node,
-        })
+        let focus = &self.focus;
+        let old_parent = &self.parent;
+
+        if let Some(old_parent) = old_parent {
+            let new_parent = set_item_node(
+                &self.domain, 
+                old_parent, 
+                &focus, 
+                new_value.clone(),
+            )?;
+
+            Ok(ValueCell {
+                domain: self.domain,
+                focus: self.focus,
+                parent: Some(new_parent),
+                node: new_value,
+            })
+        } else { // the root node without parent
+
+            self.domain.log_root_updated(
+                self.focus.clone(), 
+                self.node, 
+                new_value.clone()
+            );
+
+            Ok(ValueCell {
+                domain: self.domain,
+                focus: self.focus,
+                parent: None,
+                node: new_value,
+            })
+        }
     }
 }
 
@@ -60,73 +87,104 @@ impl ValueCell {
         access_key: AccessKey,
         new_item_node: Arc<NodeValue>,
     ) -> Result<ValueCell, Error> {
-        let new_parent = match (self.node.as_ref(), &access_key) {
-            (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
-                let new_parent_node = Arc::new(NodeValue::Map(
-                    map_value.set_item(key.to_string(), new_item_node.clone()),
-                ));
-                Ok(new_parent_node)
-            }
-            (NodeValue::List(list_value), AccessKey::Index(index)) => {
-                let new_parent_node = Arc::new(NodeValue::List(
-                    list_value.set_item(*index, new_item_node.clone()),
-                ));
-                Ok(new_parent_node)
-            }
-            (_, access_key) => Error::mismatched_access_key(&self.focus, &access_key),
-        }?;
 
         let item_focus = self.focus.focus(access_key.clone());
 
-        self.domain
-            .log_node_created(&item_focus, &self.node, &new_item_node, &new_parent);
+
+        let new_parent = set_item_node(&self.domain, &self.node, &item_focus, new_item_node)?;
 
         Ok(ValueCell {
             domain: self.domain,
             focus: self.focus,
             node: new_parent,
+            parent: self.parent,
         })
     }
 }
 
+fn set_item_node(
+    domain: &Domain,
+    parent: &Arc<NodeValue>,
+    item_focus: &Arc<Focus>, 
+    new_item: Arc<NodeValue>
+) -> Result<Arc<NodeValue>, Error> {
+    
+    let (new_parent, old_item) = match (parent.as_ref(), item_focus.get_access_key()) {
+        (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
+            let (new_map, old_item) = map_value.set_item(key.to_string(), new_item.clone());
+            
+            let new_parent_node = Arc::new(NodeValue::Map(new_map));
+            Ok((new_parent_node, old_item))
+        }
+        (NodeValue::List(list_value), AccessKey::Index(index)) => {
+            let (new_list, old_item) = list_value.set_item(index, new_item.clone());
+            let new_parent_node = Arc::new(NodeValue::List(new_list));
+            Ok((new_parent_node, old_item))
+        }
+        (_, access_key) => {
+            let parent_focus = item_focus.get_parent().unwrap();
+            Error::mismatched_access_key(parent_focus, &access_key)
+        }
+    }?;
+
+    if let Some(old_item) = old_item {
+        domain.log_value_updated(
+            item_focus.clone(), 
+            parent.clone(), 
+            old_item, 
+            new_item, 
+            new_parent.clone()
+        );
+    } else {
+        domain
+            .log_value_created(item_focus, parent, &new_item, &new_parent);
+    }
+
+    Ok(new_parent)
+}
+
 impl ValueCell {
-    pub fn remove<K: Into<AccessKey>>(&self, access_key: K) -> Result<ValueCell, Error> {
+    pub fn remove<K: Into<AccessKey>>(self, access_key: K) -> Result<ValueCell, Error> {
         let domain = &self.domain;
-        let parent_focus = &self.focus;
-        let parent_node = &self.node;
+        let collection_focus = self.focus;
+        let collection_node = &self.node;
 
         let access_key = access_key.into();
-        // let root_node = &domain.get_root();
-        let logger = &domain.logger;
 
-        let item_focus = parent_focus.focus(access_key.clone());
+        let item_focus = collection_focus.focus(access_key.clone());
 
-        let (old_value, new_parent) = match (parent_node.as_ref(), &access_key) {
+        let (new_collection, old_value) = match (collection_node.as_ref(), &access_key) {
             (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
                 if let Some(old_value) = map_value.get_item(key) {
-                    let new_parent = Arc::new(NodeValue::Map(map_value.remove(key)));
-                    Ok((old_value, new_parent))
+                    let new_collection = Arc::new(NodeValue::Map(map_value.remove(key)));
+                    Ok((new_collection, old_value))
                 } else {
-                    Error::no_such_item(parent_focus, &access_key)
+                    Error::no_such_item(&collection_focus, &access_key)
                 }
             }
             (NodeValue::List(list_value), AccessKey::Index(index)) => {
                 if let Some(old_value) = list_value.get_item(*index) {
-                    let new_parent = Arc::new(NodeValue::List(list_value.remove(*index)));
-                    Ok((old_value, new_parent))
+                    let new_collection = Arc::new(NodeValue::List(list_value.remove(*index)));
+                    Ok((new_collection, old_value))
                 } else {
-                    Error::no_such_item(parent_focus, &access_key)
+                    Error::no_such_item(&collection_focus, &access_key)
                 }
             }
-            (_, access_key) => Error::mismatched_access_key(parent_focus, &access_key),
+            (_, access_key) => Error::mismatched_access_key(&collection_focus, &access_key),
         }?;
 
-        domain.log_node_deleted(&item_focus, parent_node, old_value, &new_parent);
+        self.domain.log_value_deleted(
+            &item_focus, 
+            collection_node, 
+            old_value, 
+            &new_collection
+        );
 
         Ok(ValueCell {
-            domain: domain.clone(),
-            focus: parent_focus.clone(),
-            node: new_parent,
+            domain: self.domain,
+            focus: collection_focus,
+            node: new_collection,
+            parent: self.parent,
         })
     }
 }
