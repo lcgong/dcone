@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use super::list::ListValue;
 use super::map::MapValue;
 
@@ -50,17 +51,36 @@ impl std::fmt::Debug for NodeValue {
     }
 }
 
+
+
+// impl core::cmp::PartialEq for NodeValue {
+//     fn eq(&self, other: &Self) -> bool {
+//         match (self, other) {
+//             (NodeValue::None, NodeValue::None) => true,
+//             (NodeValue::Bool(a), NodeValue::Bool(b)) => a == b,
+//             (NodeValue::Integer(a), NodeValue::Integer(b)) => a == b,
+//             (NodeValue::Float(a), NodeValue::Float(b)) => a == b,
+//             (NodeValue::String(a), NodeValue::String(b)) => a == b,
+//             (NodeValue::Map(a), NodeValue::Map(b)) => a == b,
+//             (NodeValue::List(a), NodeValue::List(b)) => a == b,
+//             _ => false,
+//         }
+//     }
+// }
+
+
 impl core::cmp::PartialEq for NodeValue {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (NodeValue::None, NodeValue::None) => true,
-            (NodeValue::Bool(a), NodeValue::Bool(b)) => a == b,
-            (NodeValue::Integer(a), NodeValue::Integer(b)) => a == b,
-            (NodeValue::Float(a), NodeValue::Float(b)) => a == b,
-            (NodeValue::String(a), NodeValue::String(b)) => a == b,
-            (NodeValue::Map(a), NodeValue::Map(b)) => a == b,
-            (NodeValue::List(a), NodeValue::List(b)) => a == b,
-            _ => false,
-        }
+        std::ptr::eq(self, other)
+    }
+}
+
+
+impl core::cmp::Eq for NodeValue {}
+
+
+impl std::hash::Hash for NodeValue {
+    fn hash<H: std::hash::Hasher>(&self, into: &mut H) {
+        std::ptr::hash(self, into)
     }
 }

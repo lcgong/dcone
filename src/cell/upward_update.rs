@@ -5,7 +5,7 @@ use crate::focus::{AccessKey, Focus, FocusLocator};
 use crate::node::NodeValue;
 
 
-pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>, 
+pub(crate) fn upward_update_nodes(domain: &Domain, focus: &Arc<Focus>, 
     new_node: Arc<NodeValue>) {
 
     let logger = &domain.logger;
@@ -23,7 +23,7 @@ pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
                             map_value.set_item(key.to_string(), new_node.clone())
                         ));
 
-                    logger.node_changed(focus, parent_node, &new_node, children_node);
+                    logger.node_updated(focus, parent_node, &new_node, children_node);
 
                     new_node = node;
                 },
@@ -33,7 +33,7 @@ pub(crate) fn upward_update_nodes(domain: &Arc<Domain>, focus: &Arc<Focus>,
                             list.set_item(index, new_node.clone())
                         ));
 
-                    logger.node_changed(focus, parent_node, &new_node, children_node);
+                    logger.node_updated(focus, parent_node, &new_node, children_node);
 
                     new_node = node;
                 },

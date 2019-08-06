@@ -1,47 +1,17 @@
 use std::sync::Arc;
 use std::cell::RefCell;
-use crate::log::ChangeLogger;
 use crate::focus::{AccessKey, Focus};
-
-use crate::cell::ValueCell;
 use crate::node::NodeValue;
 use crate::error::Error;
 
-#[derive(PartialEq)]
+use super::log::ChangeLogger;
+
 pub struct Domain {
     pub logger: ChangeLogger,
     pub root_node: RefCell<Arc<NodeValue>>,
     pub root_focus: Arc<Focus>
     
 }
-
-pub struct DomainUtil(Arc<Domain>);
-
-impl DomainUtil {
-    pub fn new() -> Self { 
-        DomainUtil(Arc::new(Domain {
-            logger: ChangeLogger::new(),
-            root_node: RefCell::new(Arc::new(NodeValue::None)),
-            root_focus: Focus::new()
-        }))
-    }
-
-
-    pub fn root(&self) -> ValueCell {
-        let root_node = self.0.root_node.borrow().clone();
-        ValueCell {
-            domain: self.0.clone(),
-            focus: self.0.root_focus.clone(),
-            node: root_node
-        }
-    }
-
-    #[inline]
-    pub fn navigate(&self, path: &str) -> Result<ValueCell, Error> {
-        self.root().navigate(path)
-    }
-}
-
 
 impl Domain {
     pub fn new() -> Arc<Domain> {
@@ -74,7 +44,7 @@ impl Domain {
 
         let none_node = Arc::new(NodeValue::None);
 
-        self.logger.node_changed(&root_focus, &none_node, &value, &root_node);
+        self.logger.node_updated(&root_focus, &none_node, &value, &root_node);
 
         *root_node = value;
     } 
@@ -90,7 +60,7 @@ impl Domain {
  
 // 从parent_node里获得其item节点
 #[inline]
-fn get_item_node<>(parent_focus: &Arc<Focus>, parent_node: &Arc<NodeValue>, 
+pub fn get_item_node(parent_focus: &Arc<Focus>, parent_node: &Arc<NodeValue>, 
     access_key: &AccessKey) ->  Result<Arc<NodeValue>, Error> {
     
     match (parent_node.as_ref(), access_key) {

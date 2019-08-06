@@ -3,6 +3,8 @@ use crate::focus::{AccessKey, FocusLocator, FocusTurnTo};
 use super::cell::{ValueCell};
 use crate::error::Error;
 
+use crate::domain::get_item_node;
+
 
 impl ValueCell {
     pub fn focus<K: Into<AccessKey>>(&self, access_key: K) -> Result<ValueCell, Error> {
@@ -12,7 +14,8 @@ impl ValueCell {
 
         Ok(ValueCell {
             domain: self.domain.clone(),
-            node: self.domain.get_focus_node(&item_focus)?,
+            node: get_item_node(&self.focus, &self.node, &access_key)?,
+            // node: self.domain.get_focus_node(&item_focus)?,
             focus: item_focus,
         })
     }

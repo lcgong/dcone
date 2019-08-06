@@ -26,9 +26,12 @@ impl core::cmp::PartialEq for Focus {
     }
 }
 
+impl core::cmp::Eq for Focus {
+}
+
 impl std::hash::Hash for Focus {
     fn hash<H: std::hash::Hasher>(&self, into: &mut H) {
-        std::ptr::hash(&self, into)
+        std::ptr::hash(self, into)
     }
 }
 
