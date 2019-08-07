@@ -15,13 +15,20 @@ pub trait FocusLocator: FocusTurnTo {
 
     fn ancestors(&self) -> AncestorIter;
 
-    fn get_access_key(&self) -> AccessKey;
+    // fn get_access_key(&self) -> AccessKey;
 
     fn access_path(&self) -> String;
 
     fn get_direction_keys<'a>(&'a self) -> Vec<AccessKey>;
 
     fn foreach_directions<F>(&self, f: F) where F: FnMut(&Arc<Focus>);
+}
+
+
+impl Focus {
+    pub fn get_access_key(&self) -> AccessKey {
+        self.access_key.clone()
+    }
 }
 
 
@@ -51,9 +58,6 @@ impl FocusLocator for Arc<Focus> {
         new_focus
     }
 
-    fn get_access_key(&self) -> AccessKey {
-        self.access_key.clone()
-    }
 
     fn get_root<'a>(&'a self) -> &'a Arc<Focus> {
         

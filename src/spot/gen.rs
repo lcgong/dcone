@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::cell::ValueCell;
+use super::spot::Spot;
 use crate::error::Error;
 use crate::focus::{AccessKey, FocusLocator};
 use crate::node::{ListValue, MapValue, NodeValue};
@@ -8,24 +8,24 @@ use crate::node::{ListValue, MapValue, NodeValue};
 use crate::domain::Cone;
 use crate::focus::Focus;
 
-impl ValueCell {
-    pub fn set_empty_map(self) -> Result<ValueCell, Error> {
+impl Spot {
+    pub fn set_empty_map(self) -> Result<Spot, Error> {
         let new_value_node = Arc::new(NodeValue::Map(MapValue::new()));
 
         self.set_value_node(new_value_node)
     }
 
-    pub fn set_empty_list(self) -> Result<ValueCell, Error> {
+    pub fn set_empty_list(self) -> Result<Spot, Error> {
         let new_value_node = Arc::new(NodeValue::List(ListValue::new()));
         self.set_value_node(new_value_node)
     }
 
-    pub fn set_value<V: Into<NodeValue>>(self, value: V) -> Result<ValueCell, Error> {
+    pub fn set_value<V: Into<NodeValue>>(self, value: V) -> Result<Spot, Error> {
         let new_value_node = Arc::new(value.into());
         self.set_value_node(new_value_node)
     }
 
-    fn set_value_node(self, new_value: Arc<NodeValue>) -> Result<ValueCell, Error> {
+    fn set_value_node(self, new_value: Arc<NodeValue>) -> Result<Spot, Error> {
 
         let focus = &self.focus;
         let old_parent = &self.parent;
@@ -38,7 +38,7 @@ impl ValueCell {
                 new_value.clone(),
             )?;
 
-            Ok(ValueCell {
+            Ok(Spot {
                 cone: self.cone,
                 focus: self.focus,
                 parent: Some(new_parent),
@@ -53,7 +53,7 @@ impl ValueCell {
                 new_value.clone()
             );
 
-            Ok(ValueCell {
+            Ok(Spot {
                 cone: self.cone,
                 focus: self.focus,
                 parent: None,
@@ -63,13 +63,13 @@ impl ValueCell {
     }
 }
 
-impl ValueCell {
-    pub fn set_map_item<T: Into<AccessKey>>(self, access_key: T) -> Result<ValueCell, Error> {
+impl Spot {
+    pub fn set_map_item<T: Into<AccessKey>>(self, access_key: T) -> Result<Spot, Error> {
         let new_item_node = Arc::new(NodeValue::Map(MapValue::new()));
         self.set_item_node(access_key.into(), new_item_node)
     }
 
-    pub fn set_list_item<T: Into<AccessKey>>(self, access_key: T) -> Result<ValueCell, Error> {
+    pub fn set_list_item<T: Into<AccessKey>>(self, access_key: T) -> Result<Spot, Error> {
         let new_item_node = Arc::new(NodeValue::List(ListValue::new()));
         self.set_item_node(access_key.into(), new_item_node)
     }
@@ -78,7 +78,7 @@ impl ValueCell {
         self,
         access_key: K,
         item_node: V,
-    ) -> Result<ValueCell, Error> {
+    ) -> Result<Spot, Error> {
         let new_item_node = Arc::new(item_node.into());
         self.set_item_node(access_key.into(), new_item_node)
     }
@@ -87,14 +87,14 @@ impl ValueCell {
         self,
         access_key: AccessKey,
         new_item_node: Arc<NodeValue>,
-    ) -> Result<ValueCell, Error> {
+    ) -> Result<Spot, Error> {
 
         let item_focus = self.focus.focus(access_key.clone());
 
 
         let new_parent = set_item_node(&self.cone, &self.node, &item_focus, new_item_node)?;
 
-        Ok(ValueCell {
+        Ok(Spot {
             cone: self.cone,
             focus: self.focus,
             node: new_parent,
@@ -144,8 +144,8 @@ fn set_item_node(
     Ok(new_parent)
 }
 
-impl ValueCell {
-    pub fn remove<K: Into<AccessKey>>(self, access_key: K) -> Result<ValueCell, Error> {
+impl Spot {
+    pub fn remove<K: Into<AccessKey>>(self, access_key: K) -> Result<Spot, Error> {
         let collection_focus = self.focus;
         let collection_node = &self.node;
 
@@ -180,7 +180,7 @@ impl ValueCell {
             &new_collection
         );
 
-        Ok(ValueCell {
+        Ok(Spot {
             cone: self.cone,
             focus: collection_focus,
             node: new_collection,
@@ -189,7 +189,7 @@ impl ValueCell {
     }
 }
 
-impl ValueCell {
+impl Spot {
     pub fn len(&self) -> Result<isize, Error> {
         let parent_focus = &self.focus;
         let parent_node = &self.node;

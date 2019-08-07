@@ -1,7 +1,7 @@
 
 mod node;
 pub mod focus;
-mod cell;
+mod spot;
 mod domain;
 
 mod error;

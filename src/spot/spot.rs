@@ -4,7 +4,7 @@ use crate::node::NodeValue;
 
 use crate::focus::Focus;
 
-pub struct ValueCell {
+pub struct Spot {
     pub(crate) cone: Arc<Cone>,
     pub(crate) parent: Option<Arc<NodeValue>>,
     pub(crate) node: Arc<NodeValue>,

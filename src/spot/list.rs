@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use crate::focus::{AccessKey, FocusLocator};
 use crate::node::{NodeValue, MapValue, ListValue};
-use super::cell::{ValueCell};
+use super::spot::Spot;
 use crate::error::Error;
 
 
-impl ValueCell {
+impl Spot {
 
     pub fn push_map_item(self) -> Result<Self, Error> {
 
@@ -54,7 +54,7 @@ impl ValueCell {
             &new_parent_node
         );
 
-        Ok(ValueCell {
+        Ok(Spot {
             cone: domain.clone(),
             focus: parent_focus.clone(),
             node: new_parent_node,
@@ -96,7 +96,7 @@ impl ValueCell {
             &new_parent_node
         );
 
-        Ok(ValueCell {
+        Ok(Spot {
             cone: domain.clone(),
             focus: parent_focus.clone(),
             node: new_parent_node,

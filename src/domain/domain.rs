@@ -1,37 +1,38 @@
 
 use std::sync::Arc;
-use std::cell::RefCell;
-use crate::focus::Focus;
-use crate::node::NodeValue;
-use crate::cell::ValueCell;
+use crate::spot::Spot;
 use crate::error::Error;
 
 use super::cone::Cone;
 use super::log::ChangeLogger;
 
-pub struct Domain(Arc<Cone>);
+pub struct Domain {
+    cone: Arc<Cone>
+}
 
 impl Domain {
     pub fn new() -> Self { 
-        Domain(Cone::new())
+        Domain {
+            cone: Cone::new()
+        }
     }
 
-    pub fn root(&self) -> ValueCell {
-        ValueCell {
-            cone: self.0.clone(),
-            focus: self.0.root_focus.clone(),
-            node: self.0.get_root_node(),
+    pub fn root(&self) -> Spot {
+        Spot {
+            cone: self.cone.clone(),
+            focus: self.cone.root_focus.clone(),
+            node: self.cone.get_root_node(),
             parent: None,
         }
     }
 
     #[inline]
-    pub fn navigate(&self, path: &str) -> Result<ValueCell, Error> {
+    pub fn navigate(&self, path: &str) -> Result<Spot, Error> {
         self.root().navigate(path)
     }
 
     pub fn log(&self) -> &ChangeLogger {
-        &self.0.logger
+        &self.cone.logger
     }
 }
 

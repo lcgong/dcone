@@ -1,7 +1,7 @@
 use crate::node::NodeValue;
-use super::cell::ValueCell;
+use super::spot::Spot;
 
-impl ValueCell {
+impl Spot {
 
     pub fn is_none(&self) -> bool {
         match self.node.as_ref() {
@@ -50,7 +50,7 @@ impl ValueCell {
     }
 }
 
-impl ::std::fmt::Debug for ValueCell {
+impl ::std::fmt::Debug for Spot {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         self.node.fmt(fmt)
     }
