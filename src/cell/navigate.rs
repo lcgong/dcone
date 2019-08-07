@@ -13,7 +13,7 @@ impl ValueCell {
         let item_focus = self.focus.focus(access_key.clone());
 
         Ok(ValueCell {
-            domain: self.domain,
+            cone: self.cone,
             focus: item_focus,
             node: get_item_node(&self.focus, &self.node, &access_key)?,
             parent: Some(self.node),
@@ -23,9 +23,9 @@ impl ValueCell {
     pub fn navigate(&self, path: &str) -> Result<ValueCell, Error> {
         match self.focus.turn_to(path) {
             Ok(ref to_focus) => {
-                let (parent_node, new_node) = self.domain.get_focus_node(to_focus)?;
+                let (parent_node, new_node) = self.cone.get_focus_node(to_focus)?;
                 Ok(ValueCell {
-                    domain: self.domain.clone(),
+                    cone: self.cone.clone(),
                     focus: to_focus.clone(),
                     node: new_node,
                     parent: parent_node,

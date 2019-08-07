@@ -29,7 +29,7 @@ impl ValueCell {
     #[inline]
     fn _push_item(self, new_item_node: Arc<NodeValue>) -> Result<Self, Error> {
         
-        let domain = &self.domain;
+        let domain = &self.cone;
         let parent_focus = &self.focus;
         let parent_node = &self.node;            
         
@@ -47,7 +47,7 @@ impl ValueCell {
 
         let item_focus = parent_focus.focus(new_index);
 
-        self.domain.log_listitem_inserted(
+        self.cone.log_listitem_inserted(
             &item_focus, 
             parent_node, 
             &new_item_node, 
@@ -55,7 +55,7 @@ impl ValueCell {
         );
 
         Ok(ValueCell {
-            domain: domain.clone(),
+            cone: domain.clone(),
             focus: parent_focus.clone(),
             node: new_parent_node,
             parent: self.parent,
@@ -70,7 +70,7 @@ impl ValueCell {
     ) -> Result<Self, Error> {
         
         
-        let domain = &self.domain;
+        let domain = &self.cone;
         let parent_focus = &self.focus;
         let parent_node = &self.node;            
         
@@ -89,7 +89,7 @@ impl ValueCell {
             _ => Error::should_be_list(parent_focus)
         }?;
 
-        self.domain.log_listitem_inserted(
+        self.cone.log_listitem_inserted(
             &item_focus, 
             parent_node,
             &new_item_node, 
@@ -97,7 +97,7 @@ impl ValueCell {
         );
 
         Ok(ValueCell {
-            domain: domain.clone(),
+            cone: domain.clone(),
             focus: parent_focus.clone(),
             node: new_parent_node,
             parent: self.parent,

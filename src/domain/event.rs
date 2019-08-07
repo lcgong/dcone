@@ -1,11 +1,11 @@
 use std::sync::Arc;
 use crate::focus::{AccessKey, Focus, FocusLocator};
 use crate::node::NodeValue;
-use super::domain::Domain;
+use super::cone::Cone;
 
 use super::log::NodeEvent;
 
-impl Domain {
+impl Cone {
     pub(crate) fn log_root_updated(
         &self,
         focus: Arc<Focus>,

@@ -1,11 +1,11 @@
-use mstruct::DomainUtil;
+use dcone::Domain;
 
-use mstruct::Error;
+use dcone::Error;
 
 #[test]
 fn domain_gen() -> Result<(), Error> {
 
-    let domain = DomainUtil::new();
+    let domain = Domain::new();
     domain
         .root()
         .set_empty_map()?

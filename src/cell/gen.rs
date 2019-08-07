@@ -5,7 +5,7 @@ use crate::error::Error;
 use crate::focus::{AccessKey, FocusLocator};
 use crate::node::{ListValue, MapValue, NodeValue};
 
-use crate::domain::Domain;
+use crate::domain::Cone;
 use crate::focus::Focus;
 
 impl ValueCell {
@@ -32,29 +32,29 @@ impl ValueCell {
 
         if let Some(old_parent) = old_parent {
             let new_parent = set_item_node(
-                &self.domain, 
+                &self.cone, 
                 old_parent, 
                 &focus, 
                 new_value.clone(),
             )?;
 
             Ok(ValueCell {
-                domain: self.domain,
+                cone: self.cone,
                 focus: self.focus,
                 parent: Some(new_parent),
                 node: new_value,
             })
         } else { // the root node without parent
             
-            self.domain.remount_root(new_value.clone());
-            self.domain.log_root_updated(
+            self.cone.remount_root(new_value.clone());
+            self.cone.log_root_updated(
                 self.focus.clone(), 
                 self.node, 
                 new_value.clone()
             );
 
             Ok(ValueCell {
-                domain: self.domain,
+                cone: self.cone,
                 focus: self.focus,
                 parent: None,
                 node: new_value,
@@ -92,10 +92,10 @@ impl ValueCell {
         let item_focus = self.focus.focus(access_key.clone());
 
 
-        let new_parent = set_item_node(&self.domain, &self.node, &item_focus, new_item_node)?;
+        let new_parent = set_item_node(&self.cone, &self.node, &item_focus, new_item_node)?;
 
         Ok(ValueCell {
-            domain: self.domain,
+            cone: self.cone,
             focus: self.focus,
             node: new_parent,
             parent: self.parent,
@@ -104,7 +104,7 @@ impl ValueCell {
 }
 
 fn set_item_node(
-    domain: &Domain,
+    domain: &Cone,
     parent: &Arc<NodeValue>,
     item_focus: &Arc<Focus>, 
     new_item: Arc<NodeValue>
@@ -173,7 +173,7 @@ impl ValueCell {
             (_, access_key) => Error::mismatched_access_key(&collection_focus, &access_key),
         }?;
 
-        self.domain.log_value_deleted(
+        self.cone.log_value_deleted(
             &item_focus, 
             collection_node, 
             old_value, 
@@ -181,7 +181,7 @@ impl ValueCell {
         );
 
         Ok(ValueCell {
-            domain: self.domain,
+            cone: self.cone,
             focus: collection_focus,
             node: new_collection,
             parent: self.parent,

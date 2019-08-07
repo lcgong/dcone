@@ -8,6 +8,4 @@ mod error;
 
 pub use error::Error;
 pub use domain::Domain;
-pub use domain::DomainUtil;
-// pub use cell::builder::{ValueBuilder, CellBuilder};
 

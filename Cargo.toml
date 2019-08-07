@@ -1,5 +1,5 @@
 [package]
-name = "mstruct"
+name = "dcone"
 version = "0.1.0"
 authors = ["Chenggong Lyu <lcgong@gmail.com>"]
 edition = "2018"
