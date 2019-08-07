@@ -21,11 +21,10 @@ impl DomainUtil {
     }
 
     pub fn root(&self) -> ValueCell {
-        let root_node = self.0.root_node.borrow().clone();
         ValueCell {
             domain: self.0.clone(),
             focus: self.0.root_focus.clone(),
-            node: root_node,
+            node: self.0.get_root_node(),
             parent: None,
         }
     }

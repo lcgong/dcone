@@ -9,14 +9,14 @@ fn domain_gen() -> Result<(), Error> {
     domain
         .root()
         .set_empty_map()?
-        .set_map_item("a")?
-        .focus("a")?
-        .set_map_item("b")?
-        .focus("b")?
-        .set_map_item("c")?
-        .focus("c")?
-        .set_item("x", 10)?
-        .set_item("y", 20)?
+        // .set_map_item("a")?
+        // .focus("a")?
+        // .set_map_item("b")?
+        // .focus("b")?
+        // .set_map_item("c")?
+        // .focus("c")?
+        // .set_item("x", 10)?
+        // .set_item("y", 20)?
         ;
 
     println!("xxx {:?}", domain.root());

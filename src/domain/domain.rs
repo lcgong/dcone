@@ -40,21 +40,14 @@ impl Domain {
     }
 
     /// 设置该domain的root节点
-    pub(crate) fn set_root(&self, value: Arc<NodeValue>) {
-
-        let root_focus = self.root_focus.clone();
+    pub(crate) fn remount_root(&self, new_root: Arc<NodeValue>) {
         let mut root_node = self.root_node.borrow_mut();
-
-        let none_node = Arc::new(NodeValue::None);
-
-        self.log_root_updated(root_focus, root_node.clone(), value.clone());
-
-        *root_node = value;
+        *root_node = new_root;
     } 
 
     /// 取得根节点
     #[inline]
-    pub(crate) fn get_root(&self) -> Arc<NodeValue> {
+    pub(crate) fn get_root_node(&self) -> Arc<NodeValue> {
         self.root_node.borrow().clone()
     }
 }

@@ -45,7 +45,8 @@ impl ValueCell {
                 node: new_value,
             })
         } else { // the root node without parent
-
+            
+            self.domain.remount_root(new_value.clone());
             self.domain.log_root_updated(
                 self.focus.clone(), 
                 self.node, 
@@ -145,7 +146,6 @@ fn set_item_node(
 
 impl ValueCell {
     pub fn remove<K: Into<AccessKey>>(self, access_key: K) -> Result<ValueCell, Error> {
-        let domain = &self.domain;
         let collection_focus = self.focus;
         let collection_node = &self.node;
 

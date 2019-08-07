@@ -42,25 +42,19 @@ pub enum NodeEvent {
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
+    InternalRootUpdated {
+        txid: u64,
+        focus: Arc<Focus>,
+        value: Arc<NodeValue>,
+    },
 
-}
-
-pub struct FocusTx {
-    txid: u64,
-    children_max: u64,
-}
-
-pub struct UpdatePending {
-    focus: Arc<Focus>,
-    new_value: Arc<NodeValue>,
-    old_value: Arc<NodeValue>,
 }
 
 pub struct ChangeLogger {
-    pub pending: RwLock<HashMap<Arc<Focus>, Vec<UpdatePending>>>,
+    // pub pending: RwLock<HashMap<Arc<Focus>, Vec<UpdatePending>>>,
     pub changed: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // new to old
     pub parents: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // child to parent
-    pub focus_tx: HashMap<Arc<Focus>, RwLock<FocusTx>>,
+    // pub focus_tx: HashMap<Arc<Focus>, RwLock<FocusTx>>,
     pub txid_max: RwLock<u64>,
     pub log: RwLock<Vec<NodeEvent>>,
 }
@@ -70,10 +64,10 @@ impl ChangeLogger {
         ChangeLogger {
             txid_max: RwLock::new(0),
             log: RwLock::new(Vec::new()),
-            focus_tx: HashMap::new(),
+            // focus_tx: HashMap::new(),
             changed: RwLock::new(HashMap::new()),
             parents: RwLock::new(HashMap::new()),
-            pending: RwLock::new(HashMap::new()),
+            // pending: RwLock::new(HashMap::new()),
         }
     }
 
@@ -117,6 +111,7 @@ impl ChangeLogger {
                 ListItemDeleted { txid, focus, value } => ("LD", txid, focus, value),
                 RootUpdated { txid, focus, value } => ("RU", txid, focus, value),
                 InternalNodeUpdated { txid, focus, value } => ("IU", txid, focus, value),
+                InternalRootUpdated { txid, focus, value } => ("IR", txid, focus, value),
             };
 
             print!("[{}]#{:^2} ", changed_type, txid);

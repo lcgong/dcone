@@ -33,8 +33,6 @@ impl ValueCell {
         let parent_focus = &self.focus;
         let parent_node = &self.node;            
         
-        let logger = &domain.logger;
-
         let (new_index, new_parent_node) = match parent_node.as_ref() {
             NodeValue::List(list_value) => {
                 let index = list_value.len();
@@ -78,7 +76,6 @@ impl ValueCell {
         
         let access_key = access_key.into();
         let item_focus = parent_focus.focus(access_key.clone());
-        let logger = &domain.logger;
 
         let new_item_node = Arc::new(item_node.into());
 

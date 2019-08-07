@@ -1,8 +1,7 @@
-use super::domain::Domain;
+use std::sync::Arc;
 use crate::focus::{AccessKey, Focus, FocusLocator};
 use crate::node::NodeValue;
-use std::sync::Arc;
-// use crate::cell::upward_update::upward_update_nodes;
+use super::domain::Domain;
 
 use super::log::NodeEvent;
 
@@ -18,6 +17,25 @@ impl Domain {
         let txid = logger.new_txid();
 
         logger.push(NodeEvent::RootUpdated {
+            txid: txid,
+            focus: focus,
+            value: new_value.clone(),
+        });
+
+        self.push_change(old_value, new_value);
+    }
+
+    pub(crate) fn log_internal_root_updated(
+        &self,
+        focus: Arc<Focus>,
+        old_value: Arc<NodeValue>,
+        new_value: Arc<NodeValue>,
+    ) {
+        let logger = &self.logger;
+
+        let txid = logger.new_txid();
+
+        logger.push(NodeEvent::InternalRootUpdated {
             txid: txid,
             focus: focus,
             value: new_value.clone(),
@@ -154,7 +172,52 @@ impl Domain {
         );
     }
 
-    pub(crate) fn log_inode_updated(
+    pub(crate) fn pending_inode_update(
+        &self,
+        focus: Arc<Focus>,
+        old_node: Arc<NodeValue>,
+        new_node: Arc<NodeValue>,
+    ) {
+        // println!("111 {:?} {:?} => {:?}", focus.access_path(), old_node, new_node);
+
+        // 取得旧节点的父节点，向上更新
+        if let Some(old_parent) = self.get_parent_node(&old_node) {
+            // println!("222 {:?} {:?}", old_parent, focus);
+            let (new_parent, _old_item) = match (old_parent.as_ref(), focus.get_access_key()) {
+                (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
+                    let (new_map, old_item) = map_value.set_item(key.to_string(), new_node.clone());
+                    let new_parent_node = Arc::new(NodeValue::Map(new_map));
+                    (new_parent_node, old_item)
+                }
+                (NodeValue::List(list_value), AccessKey::Index(index)) => {
+                    let (new_list, old_item) = list_value.set_item(index, new_node.clone());
+                    let new_parent_node = Arc::new(NodeValue::List(new_list));
+                    (new_parent_node, old_item)
+                }
+                (_, _) => {
+                    panic!(
+                        "mismatch map/list with access_key while accessing internal node at '{}'",
+                        focus.access_path()
+                    );
+                }
+            };
+
+            self.log_inode_updated(
+                focus.clone(),
+                old_parent.clone(),
+                old_node,
+                new_node,
+                new_parent,
+            );
+        } else {
+            // update root internally
+
+            self.log_internal_root_updated(focus, old_node.clone(), new_node.clone());
+            self.remount_root(new_node);
+        }
+    }
+
+    fn log_inode_updated(
         &self,
         focus: Arc<Focus>,
         old_parent: Arc<NodeValue>,
@@ -198,48 +261,5 @@ impl Domain {
 
         let parent_node = node_parents.get(node)?;
         Some(parent_node.clone())
-    }
-
-    pub(crate) fn pending_inode_update(
-        &self,
-        focus: Arc<Focus>,
-        old_node: Arc<NodeValue>,
-        new_node: Arc<NodeValue>,
-    ) {
-        // println!("111 {:?} {:?} => {:?}", focus.access_path(), old_node, new_node);
-
-        // 取得旧节点的父节点，向上更新
-        if let Some(old_parent) = self.get_parent_node(&old_node) {
-            // println!("222 {:?} {:?}", old_parent, focus);
-            let (new_parent, _old_item) = match (old_parent.as_ref(), focus.get_access_key()) {
-                (NodeValue::Map(map_value), AccessKey::Key(ref key)) => {
-                    let (new_map, old_item) = map_value.set_item(key.to_string(), new_node.clone());
-                    let new_parent_node = Arc::new(NodeValue::Map(new_map));
-                    (new_parent_node, old_item)
-                }
-                (NodeValue::List(list_value), AccessKey::Index(index)) => {
-                    let (new_list, old_item) = list_value.set_item(index, new_node.clone());
-                    let new_parent_node = Arc::new(NodeValue::List(new_list));
-                    (new_parent_node, old_item)
-                }
-                (_, _) => {
-                    panic!(
-                        "mismatch map/list with access_key while accessing internal node at '{}'",
-                        focus.access_path()
-                    );
-                }
-            };
-
-            self.log_inode_updated(
-                focus.clone(),
-                old_parent.clone(),
-                old_node,
-                new_node,
-                new_parent,
-            );
-        } else {
-
-            self.set_root(new_node);
-        }
     }
 }
