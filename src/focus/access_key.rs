@@ -53,6 +53,17 @@ impl From<i32> for AccessKey {
 
 
 
+// impl std::cmp::Ord for AccessKey {
+//     fn cmp(&self, other: &AccessKey) -> std::cmp::Ordering {
+//         match (self, other) {
+//             (AccessKey::Key(a), AccessKey::Key(b)) => a.cmp(b),
+//             (AccessKey::Index(a), AccessKey::Index(b)) => a.cmp(b),
+//         }
+//     }
+// }
+
+
+
 impl ::std::fmt::Debug for AccessKey {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         // println!("1111 {:?}", self);

@@ -42,21 +42,34 @@ pub enum NodeEvent {
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
+    InternalLineUpdated {
+        txid: u64,
+        focus: Arc<Focus>,
+        old_node: Arc<NodeValue>,
+        new_node: Arc<NodeValue>,
+    },
     InternalRootUpdated {
         txid: u64,
         focus: Arc<Focus>,
         value: Arc<NodeValue>,
     },
+}
 
+#[derive(Debug, Clone)]
+pub struct PendingUpdate {
+    pub focus: Arc<Focus>,
+    pub old_node: Arc<NodeValue>,
+    pub new_node: Arc<NodeValue>,
 }
 
 pub struct ChangeLogger {
-    // pub pending: RwLock<HashMap<Arc<Focus>, Vec<UpdatePending>>>,
+    pub pending: RwLock<HashMap<Arc<Focus>, Vec<PendingUpdate>>>,
     pub changed: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // new to old
     pub parents: RwLock<HashMap<Arc<NodeValue>, Arc<NodeValue>>>, // child to parent
     // pub focus_tx: HashMap<Arc<Focus>, RwLock<FocusTx>>,
     pub txid_max: RwLock<u64>,
     pub log: RwLock<Vec<NodeEvent>>,
+    // pub pending: RwLock<Vec<PendingUpdate>>,
 }
 
 impl ChangeLogger {
@@ -67,7 +80,8 @@ impl ChangeLogger {
             // focus_tx: HashMap::new(),
             changed: RwLock::new(HashMap::new()),
             parents: RwLock::new(HashMap::new()),
-            // pending: RwLock::new(HashMap::new()),
+            pending: RwLock::new(HashMap::new()),
+            // pending: RwLock::new(Vec::new()),
         }
     }
 
@@ -82,7 +96,6 @@ impl ChangeLogger {
         log.push(event);
     }
 
-
     pub fn foreach<F>(&self, mut func: F)
     where
         F: FnMut(&ChangeLogger, &NodeEvent),
@@ -96,13 +109,34 @@ impl ChangeLogger {
         let parents = self.parents.read().unwrap();
         let changed = self.changed.read().unwrap();
 
-        // for (k, v) in parents.iter() {
-        //     println!("{:p} => {:p}", k.as_ref(), v.as_ref());
-        // }
+        let pending = self.pending.read().unwrap();
 
+        println!("Pending:");
+        for (focus, updates) in pending.iter() {
+            println!("{:?}", focus.access_path());
+            for upd in updates.iter() {
+                println!(
+                    "   {:p} => {:p}",
+                    upd.old_node,
+                    upd.new_node,
+                );
+            }
+        }
+
+        println!("Change:");
         use NodeEvent::*;
 
         for event in self.log.read().unwrap().iter().rev() {
+            if let InternalLineUpdated { txid, focus, old_node, new_node } = event {
+                print!("[{}]#{:^2} ", "IL", txid);
+                print!(" {:p} => ", old_node.as_ref());
+                print!("{:p}", new_node.as_ref());
+                print!(" {:16}", " ");
+
+                println!(" '{}'", focus.access_path());
+                continue;
+            }
+
             let (changed_type, txid, focus, value) = match event {
                 ValueCreated { txid, focus, value } => ("VC", txid, focus, value),
                 ValueUpdated { txid, focus, value } => ("VU", txid, focus, value),
@@ -112,9 +146,18 @@ impl ChangeLogger {
                 RootUpdated { txid, focus, value } => ("RU", txid, focus, value),
                 InternalNodeUpdated { txid, focus, value } => ("IU", txid, focus, value),
                 InternalRootUpdated { txid, focus, value } => ("IR", txid, focus, value),
+                InternalLineUpdated { txid, focus, old_node, new_node } => {
+                    ("IL", txid, focus, new_node)
+                },
             };
 
             print!("[{}]#{:^2} ", changed_type, txid);
+            if let Some(changed_from) = changed.get(value) {
+                print!(" {:p} => ", changed_from.as_ref());
+            } else {
+                print!("  {:16} ", " ");
+            }
+
             print!("{:p}", value.as_ref());
 
             if let Some(parent_node) = parents.get(value) {
@@ -123,11 +166,6 @@ impl ChangeLogger {
                 print!(" {:16}", " ");
             }
 
-            if let Some(changed_to) = changed.get(value) {
-                print!(" => {:p}", changed_to.as_ref());
-            } else {
-                print!("  {:16}", " ");
-            }
 
             println!(" '{}'", focus.access_path());
         }

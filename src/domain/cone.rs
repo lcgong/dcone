@@ -10,7 +10,6 @@ pub struct Cone {
     pub logger: ChangeLogger,
     pub root_node: RefCell<Arc<NodeValue>>,
     pub root_focus: Arc<Focus>
-    
 }
 
 impl Cone {
@@ -48,6 +47,7 @@ impl Cone {
     /// 取得根节点
     #[inline]
     pub(crate) fn get_root_node(&self) -> Arc<NodeValue> {
+        self.solve_pending_at(&self.root_focus);
         self.root_node.borrow().clone()
     }
 }

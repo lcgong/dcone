@@ -20,21 +20,6 @@ impl Focus {
 }
 
 
-impl core::cmp::PartialEq for Focus {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self, other)
-    }
-}
-
-impl core::cmp::Eq for Focus {
-}
-
-impl std::hash::Hash for Focus {
-    fn hash<H: std::hash::Hasher>(&self, into: &mut H) {
-        std::ptr::hash(self, into)
-    }
-}
-
 
 impl ::std::fmt::Debug for Focus {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {

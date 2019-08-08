@@ -1,6 +1,7 @@
 mod log;
 mod cone;
 mod event;
+mod inode;
 mod domain;
 
 pub use log::ChangeLogger;

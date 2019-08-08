@@ -5,6 +5,7 @@ mod access_key;
 mod focus;
 mod turn_to;
 mod locator;
+mod ord;
 
 
 pub use access_key::{AccessKey, CircularZeroIndex};
@@ -200,6 +201,26 @@ mod tests {
         }    
         assert_eq!(r.get_direction_keys().len(), 0);
     
+    }
+
+
+    #[test]
+    fn focus_sort() {
+        
+        let f0 = Focus::new();
+        let f1 = f0.focus("a1").focus("b1").focus("c1");
+        let f2 = f0.focus("a1").focus("b1").focus("c2").focus("d2");
+        let f3 = f0.focus("a1").focus("b2").focus("c3");
+
+
+
+        assert!(f1 < f2);
+        assert!(f0 < f2);
+        assert!(f2 < f3);
+
+
+        
+
     }
 
 }
